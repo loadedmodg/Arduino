@@ -1,0 +1,42 @@
+// Relay pin is controlled with D13.
+int relay = 13;
+volatile byte relayState = LOW;
+
+// PIR Motion Sensor is connected to D9.
+int PIRInterrupt = 9;
+
+// Timer Variables - this is how long to wait, in milliseconds.  400,000 miliseconds is 400 seconds
+long lastDebounceTime = 0;  
+long debounceDelay = 400000;
+
+void setup() {
+  // Pin for relay module set as output
+  pinMode(relay, OUTPUT);
+  digitalWrite(relay, LOW);
+  // PIR motion sensor set as an input
+  pinMode(PIRInterrupt, INPUT);
+  // Triggers detectMotion function on rising mode to turn the relay on, if the condition is met
+  attachInterrupt(digitalPinToInterrupt(PIRInterrupt), detectMotion, RISING);
+  // Serial communication for debugging purposes
+  Serial.begin(9600);
+}
+
+void loop() {
+  // If x seconds have passed, the relay is turned off
+  if((millis() - lastDebounceTime) > debounceDelay && relayState == HIGH){
+    digitalWrite(relay, LOW);
+    relayState = LOW;
+    Serial.println("OFF");
+  }
+  delay(50);
+}
+
+void detectMotion() {
+  Serial.println("Motion");
+  if(relayState == LOW){
+    digitalWrite(relay, HIGH);
+  }
+  relayState = HIGH;  
+  Serial.println("ON");
+  lastDebounceTime = millis();
+}
